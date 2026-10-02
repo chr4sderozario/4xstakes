@@ -72,7 +72,6 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
 
   const totalBet = Object.values(bets).reduce((a, b) => a + b, 0);
 
-  // Draw wheel on canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -107,28 +106,25 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
       ctx.lineWidth = 2.5;
       ctx.stroke();
 
-      // Draw segment text
       ctx.save();
       ctx.rotate(startAngle + anglePerSeg / 2);
       ctx.textAlign = 'right';
       ctx.fillStyle = seg.textColor;
-      ctx.font = 'bold 16px Orbitron, sans-serif';
+      ctx.font = 'bold 15px Orbitron, sans-serif';
       ctx.fillText(`${seg.mult}X`, radius - 15, 6);
       ctx.restore();
     }
 
     ctx.restore();
 
-    // Outer luxury gold bezel
     ctx.beginPath();
     ctx.arc(center, center, radius, 0, 2 * Math.PI);
     ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 5;
     ctx.stroke();
 
-    // Center hub
     ctx.beginPath();
-    ctx.arc(center, center, 28, 0, 2 * Math.PI);
+    ctx.arc(center, center, 24, 0, 2 * Math.PI);
     ctx.fillStyle = '#0f172a';
     ctx.fill();
     ctx.strokeStyle = '#f59e0b';
@@ -136,7 +132,7 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
     ctx.stroke();
 
     ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 12px Orbitron, sans-serif';
+    ctx.font = 'bold 11px Orbitron, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('MEGA', center, center + 4);
   }, [rotation]);
@@ -200,7 +196,6 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
 
       setIsSpinning(true);
 
-      // Mega Multiplier Rush feature: 20% chance of random segment boost
       if (Math.random() < 0.4) {
         const boostOptions: WheelOption[] = [5, 10, 20, 40];
         const boostTarget = boostOptions[Math.floor(Math.random() * boostOptions.length)];
@@ -210,34 +205,28 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
         setMegaRushMultiplier(null);
       }
 
-      // Pick winning segment
       const winningSegIdx = Math.floor(Math.random() * SEGMENTS.length);
       const pickedSeg = SEGMENTS[winningSegIdx];
 
       const numSegments = SEGMENTS.length;
       const anglePerSeg = 360 / numSegments;
-      // Top pointer is at 270 degrees
       const targetAngle = 270 - (winningSegIdx * anglePerSeg + anglePerSeg / 2);
       const totalSpins = 6;
       const finalRotation = rotation + totalSpins * 360 + ((targetAngle - (rotation % 360) + 360) % 360);
 
-      // Animate rotation with clicks
       const startTime = performance.now();
       const duration = 4000;
       const startRot = rotation;
-
       let lastTickAngle = startRot;
 
       const animate = (currentTime: number) => {
         const elapsed = currentTime - startTime;
         const progress = Math.min(1, elapsed / duration);
-        // Ease-out cubic
         const ease = 1 - Math.pow(1 - progress, 3);
         const currentRot = startRot + (finalRotation - startRot) * ease;
 
         setRotation(currentRot);
 
-        // Sound tick on each segment passed
         if (Math.abs(currentRot - lastTickAngle) >= anglePerSeg) {
           sounds.playWheelTick();
           lastTickAngle = currentRot;
@@ -246,7 +235,6 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          // Finished spin
           finishRound(pickedSeg.mult, data.betId);
         }
       };
@@ -277,7 +265,6 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
       sounds.playCrash();
     }
 
-    // Settle backend
     if (user) {
       await fetch('/api/game/settle', {
         method: 'POST',
@@ -298,93 +285,88 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 space-y-6">
+    <div className="max-w-5xl mx-auto px-2.5 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-6">
       {/* Header */}
-      <div className="p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-purple-950/40 via-[#111624] to-pink-950/40 border border-purple-500/30 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-purple-500/30">
-            🎡
+      <div className="p-3 sm:p-5 rounded-2xl bg-gradient-to-r from-purple-950/40 via-[#111624] to-pink-950/40 border border-purple-500/30 shadow-lg flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-black text-lg shrink-0">
+            🎪
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-['Orbitron'] font-black text-white">
-                MEGA WHEEL CARNIVAL
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-sm sm:text-xl font-['Orbitron'] font-black text-white leading-tight">
+                MEGA WHEEL
               </h1>
-              <span className="text-[10px] bg-pink-500/20 text-pink-300 border border-pink-500/40 px-2 py-0.5 rounded-full font-black uppercase">
-                Up to 250x Mega Rush
+              <span className="text-[8px] sm:text-[9px] bg-pink-500/20 text-pink-300 border border-pink-500/40 px-1.5 py-0.2 rounded font-black uppercase">
+                250x Rush
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              Pick your multiplier, spin the giant carnival wheel, and trigger Supercharged Mega Boosts!
+            <p className="text-[10px] sm:text-xs text-slate-400 hidden sm:block">
+              Pick your multiplier segment and spin the giant wheel!
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 bg-[#0a0e17] px-4 py-2 rounded-2xl border border-slate-800">
+        <div className="flex items-center gap-2 bg-[#0a0e17] px-2.5 py-1.5 rounded-xl border border-slate-800">
           <div className="text-right">
-            <div className="text-[9px] uppercase font-bold text-slate-400">Wallet Balance</div>
-            <div className="font-['Orbitron'] font-black text-emerald-400 text-sm sm:text-base">
+            <div className="text-[8px] uppercase font-bold text-slate-400">Balance</div>
+            <div className="font-['Orbitron'] font-black text-emerald-400 text-xs sm:text-sm">
               ₹{user ? user.balance.toLocaleString('en-IN') : '0'}
             </div>
           </div>
           <button
             onClick={onOpenDeposit}
-            className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs transition-colors cursor-pointer"
+            className="px-2 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] transition-colors cursor-pointer"
           >
-            + Deposit
+            + Add
           </button>
         </div>
       </div>
 
       {errorMessage && (
-        <div className="p-3.5 rounded-2xl bg-red-950/70 border border-red-800 text-red-300 text-xs flex items-center gap-2">
+        <div className="p-3 rounded-xl bg-red-950/70 border border-red-800 text-red-300 text-xs flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {/* Main Wheel Arena */}
-      <div className="bg-[#0b101b] border border-purple-500/30 rounded-3xl p-5 sm:p-8 space-y-6 shadow-2xl">
+      <div className="bg-[#0b101b] border border-purple-500/30 rounded-2xl p-3.5 sm:p-6 space-y-4 shadow-xl">
         {/* Canvas Wheel with Indicator */}
-        <div className="relative flex flex-col items-center justify-center py-4">
-          {/* Top Indicator Arrow */}
-          <div className="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[24px] border-t-amber-400 z-10 drop-shadow-[0_4px_8px_rgba(245,158,11,0.6)] animate-bounce"></div>
+        <div className="relative flex flex-col items-center justify-center py-2">
+          <div className="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-amber-400 z-10 drop-shadow-[0_2px_6px_rgba(245,158,11,0.6)]"></div>
 
-          {/* Canvas Wheel */}
           <canvas
             ref={canvasRef}
-            width={340}
-            height={340}
-            className="rounded-full shadow-2xl shadow-purple-500/20 max-w-[280px] sm:max-w-[340px]"
+            width={300}
+            height={300}
+            className="rounded-full shadow-xl max-w-[240px] sm:max-w-[300px]"
           />
 
-          {/* Mega Multiplier Rush Banner */}
           {megaRushMultiplier && (
-            <div className="mt-4 px-4 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-['Orbitron'] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-pink-500/30 animate-pulse">
-              <Zap className="w-4 h-4 text-yellow-300" />
+            <div className="mt-2.5 px-3 py-1 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-['Orbitron'] font-black text-[10px] uppercase flex items-center gap-1 shadow-md animate-pulse">
+              <Zap className="w-3.5 h-3.5 text-yellow-300" />
               <span>MEGA RUSH: {megaRushMultiplier.mult}X BOOSTED TO {megaRushMultiplier.boost}X!</span>
             </div>
           )}
         </div>
 
-        {/* Win/Result Notification */}
+        {/* Result Notification */}
         {winningMult !== null && !isSpinning && (
-          <div className="p-4 rounded-2xl bg-[#080d16] border border-purple-500/60 text-center animate-milestone max-w-md mx-auto">
-            <div className="text-xs uppercase font-bold text-purple-400">
-              WHEEL STOPPED ON: {winningMult}X MULTIPLIER
+          <div className="p-3 rounded-xl bg-[#080d16] border border-purple-500/60 text-center animate-milestone max-w-sm mx-auto">
+            <div className="text-[10px] uppercase font-bold text-purple-400">
+              STOPPED ON: {winningMult}X MULTIPLIER
             </div>
-            {winAmount > 0 ? (
-              <div className="text-2xl font-['Orbitron'] font-black text-emerald-400 mt-0.5">
+            {winAmount > 0 && (
+              <div className="text-xl font-['Orbitron'] font-black text-emerald-400 mt-0.5">
                 +₹{winAmount.toLocaleString('en-IN')} WON!
               </div>
-            ) : (
-              <div className="text-sm font-bold text-slate-400 mt-0.5">No Winning Bets on Round</div>
             )}
           </div>
         )}
 
-        {/* Multiplier Betting Felt Grid (1x, 2x, 5x, 10x, 20x, 40x) */}
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 max-w-4xl mx-auto">
+        {/* Multiplier Betting Felt Grid (3-Col on Mobile, 6 on Desktop) */}
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 max-w-3xl mx-auto">
           {([1, 2, 5, 10, 20, 40] as WheelOption[]).map((mult) => {
             const hasBet = bets[mult] > 0;
             const isWinner = winningMult === mult && !isSpinning;
@@ -395,22 +377,22 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
                 type="button"
                 disabled={isSpinning}
                 onClick={() => handleAddBet(mult)}
-                className={`p-4 rounded-2xl border flex flex-col items-center justify-between transition-all cursor-pointer relative overflow-hidden group ${
+                className={`p-2.5 rounded-xl border flex flex-col items-center justify-between transition-all cursor-pointer ${
                   isWinner
-                    ? 'bg-emerald-950/80 border-emerald-500 ring-2 ring-emerald-400 shadow-xl'
+                    ? 'bg-emerald-950/80 border-emerald-500 ring-1 ring-emerald-400 shadow-md'
                     : hasBet
-                    ? 'bg-purple-950/80 border-purple-500 shadow-lg shadow-purple-500/30'
-                    : 'bg-[#101625] hover:bg-purple-950/40 border-slate-700 hover:border-purple-500/50'
+                    ? 'bg-purple-950/80 border-purple-500 shadow-sm'
+                    : 'bg-[#101625] hover:bg-purple-950/40 border-slate-700'
                 }`}
               >
-                <div className="text-[10px] uppercase font-bold text-slate-400">PAYS {mult}:1</div>
-                <div className="text-2xl font-['Orbitron'] font-black text-white my-1">{mult}X</div>
+                <div className="text-[9px] uppercase font-bold text-slate-400">{mult}:1</div>
+                <div className="text-lg font-['Orbitron'] font-black text-white my-0.5">{mult}X</div>
                 {hasBet ? (
-                  <div className="py-1 px-2.5 rounded-full bg-purple-600 text-white font-mono font-bold text-xs inline-block shadow-md">
+                  <div className="py-0.5 px-2 rounded-full bg-purple-600 text-white font-mono font-bold text-[10px]">
                     ₹{bets[mult]}
                   </div>
                 ) : (
-                  <span className="text-[10px] text-slate-400 group-hover:text-purple-300">Tap to Bet</span>
+                  <span className="text-[9px] text-slate-400">Bet</span>
                 )}
               </button>
             );
@@ -418,9 +400,8 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
         </div>
 
         {/* Chip Controls & Action Footer */}
-        <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Chip Selector */}
-          <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1">
+        <div className="pt-2 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-0.5">
             {CHIPS.map((chip) => (
               <button
                 key={chip}
@@ -429,10 +410,10 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
                   sounds.playChipClink();
                   setSelectedChip(chip);
                 }}
-                className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 flex items-center justify-center font-mono font-black text-xs cursor-pointer shadow-lg transition-transform active:scale-95 shrink-0 ${
+                className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full border flex items-center justify-center font-mono font-black text-[11px] cursor-pointer shrink-0 ${
                   selectedChip === chip
-                    ? 'border-white scale-110 shadow-purple-500/40 bg-gradient-to-br from-purple-500 to-pink-600 text-white ring-2 ring-purple-400'
-                    : 'border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500'
+                    ? 'border-white bg-gradient-to-br from-purple-500 to-pink-600 text-white ring-1 ring-purple-400 scale-105'
+                    : 'border-slate-700 bg-slate-800 text-slate-300'
                 }`}
               >
                 ₹{chip >= 1000 ? `${chip / 1000}k` : chip}
@@ -440,12 +421,12 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
             ))}
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               type="button"
               disabled={totalBet === 0 || isSpinning}
               onClick={handleClearBets}
-              className="px-4 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors cursor-pointer disabled:opacity-40"
+              className="px-3 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs cursor-pointer disabled:opacity-40"
             >
               Clear
             </button>
@@ -454,31 +435,31 @@ export const MegaWheelGame: React.FC<MegaWheelGameProps> = ({
               type="button"
               disabled={totalBet === 0 || isSpinning || isProcessing}
               onClick={handleSpin}
-              className={`flex-1 sm:flex-none px-8 py-3.5 rounded-2xl font-['Orbitron'] font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-['Orbitron'] font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
                 totalBet > 0 && !isSpinning
-                  ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 hover:from-purple-400 hover:to-pink-400 text-white shadow-lg shadow-purple-500/30 active:scale-95 animate-shimmer'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md active:scale-95'
                   : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
               }`}
             >
               {isSpinning
-                ? 'Wheel Spinning...'
+                ? 'Spinning...'
                 : totalBet > 0
-                ? `Spin Mega Wheel (₹${totalBet})`
+                ? `Spin (₹${totalBet})`
                 : 'Select Chips to Bet'}
             </button>
           </div>
         </div>
 
         {/* Spin Multiplier History Ribbon */}
-        <div className="p-3 bg-[#080c14] rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
-          <span className="font-['Orbitron'] font-bold text-[10px] text-slate-400 uppercase tracking-wider">
-            Previous Spins:
+        <div className="p-2 bg-[#080c14] rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+          <span className="font-['Orbitron'] font-bold text-[9px] text-slate-400 uppercase tracking-wider">
+            History:
           </span>
-          <div className="flex items-center gap-2 overflow-x-auto">
+          <div className="flex items-center gap-1.5 overflow-x-auto">
             {spinHistory.map((m, i) => (
               <span
                 key={i}
-                className="px-2 py-0.5 rounded-md font-mono font-bold text-xs bg-slate-800 text-purple-300 border border-slate-700"
+                className="px-1.5 py-0.2 rounded font-mono font-bold text-[10px] bg-slate-800 text-purple-300 border border-slate-700"
               >
                 {m}x
               </span>

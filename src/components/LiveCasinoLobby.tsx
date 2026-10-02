@@ -13,6 +13,7 @@ import {
   Flame,
   Award,
   Video,
+  Zap,
 } from 'lucide-react';
 import { sounds } from '../lib/sound.js';
 

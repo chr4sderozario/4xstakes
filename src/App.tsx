@@ -400,7 +400,7 @@ export default function App() {
       <footer className="border-t border-slate-800/80 bg-[#06080d] py-6 px-4 text-center text-xs text-slate-500 mb-16 md:mb-0">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-['Orbitron'] font-black text-slate-300">4TIMEBET</span>
+            <span className="font-['Orbitron'] font-black text-slate-300">4X STAKES</span>
             <span>• Next-Gen iGaming & Virtual Casino Portal</span>
           </div>
           <div className="flex items-center gap-4 text-[11px] flex-wrap justify-center">

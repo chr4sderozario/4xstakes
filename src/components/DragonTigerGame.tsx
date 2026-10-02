@@ -21,7 +21,7 @@ interface DragonTigerGameProps {
 type BetChoice = 'dragon' | 'tiger' | 'tie' | 'suited-tie';
 
 interface Card {
-  rank: number; // 1 (Ace) to 13 (King)
+  rank: number;
   suit: '♠' | '♥' | '♣' | '♦';
   label: string;
   isRed: boolean;
@@ -127,7 +127,6 @@ export const DragonTigerGame: React.FC<DragonTigerGameProps> = ({
     sounds.playClick();
 
     try {
-      // Deduct total bet atomically
       const res = await fetch('/api/game/bet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -150,27 +149,24 @@ export const DragonTigerGame: React.FC<DragonTigerGameProps> = ({
       setPhase('dealing');
       sounds.playCardFlip();
 
-      // Generate cards
       const dCard = getRandomCard();
       const tCard = getRandomCard();
 
       setTimeout(() => {
         setDragonCard(dCard);
         sounds.playCardFlip();
-      }, 700);
+      }, 600);
 
       setTimeout(async () => {
         setTigerCard(tCard);
         sounds.playCardFlip();
 
-        // Determine winner
         let roundWinner: BetChoice;
         if (dCard.rank > tCard.rank) {
           roundWinner = 'dragon';
         } else if (tCard.rank > dCard.rank) {
           roundWinner = 'tiger';
         } else {
-          // It's a tie! Check suited tie
           if (dCard.suit === tCard.suit) {
             roundWinner = 'suited-tie';
           } else {
@@ -184,7 +180,6 @@ export const DragonTigerGame: React.FC<DragonTigerGameProps> = ({
           roundWinner === 'dragon' ? 'D' : roundWinner === 'tiger' ? 'T' : 'Tie',
         ]);
 
-        // Calculate payout
         let totalWin = 0;
         if (roundWinner === 'dragon' && bets.dragon > 0) {
           totalWin += bets.dragon * 2;
@@ -192,7 +187,6 @@ export const DragonTigerGame: React.FC<DragonTigerGameProps> = ({
           totalWin += bets.tiger * 2;
         } else if (roundWinner === 'tie') {
           if (bets.tie > 0) totalWin += bets.tie * 11;
-          // Tie returns half of Dragon/Tiger bets
           totalWin += Math.floor(bets.dragon * 0.5) + Math.floor(bets.tiger * 0.5);
         } else if (roundWinner === 'suited-tie') {
           if (bets['suited-tie'] > 0) totalWin += bets['suited-tie'] * 50;
@@ -203,7 +197,6 @@ export const DragonTigerGame: React.FC<DragonTigerGameProps> = ({
         setRoundWinAmount(totalWin);
         setPhase('result');
 
-        // Settle on backend
         await fetch('/api/game/settle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -223,13 +216,12 @@ export const DragonTigerGame: React.FC<DragonTigerGameProps> = ({
           sounds.playCrash();
         }
 
-        // Reset for next round after 3.5s
         setTimeout(() => {
           setPhase('betting');
           setWinner(null);
           setIsProcessing(false);
-        }, 3500);
-      }, 1600);
+        }, 3000);
+      }, 1400);
     } catch {
       setErrorMessage('Network connection error.');
       setIsProcessing(false);
@@ -238,125 +230,119 @@ export const DragonTigerGame: React.FC<DragonTigerGameProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 space-y-6">
+    <div className="max-w-5xl mx-auto px-2.5 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-6">
       {/* Header */}
-      <div className="p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-red-950/40 via-[#111624] to-amber-950/40 border border-amber-500/30 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-600 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-red-600/30 font-black text-xl">
+      <div className="p-3 sm:p-5 rounded-2xl bg-gradient-to-r from-red-950/40 via-[#111624] to-amber-950/40 border border-amber-500/30 shadow-lg flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-red-600 to-amber-600 flex items-center justify-center text-white shadow-md font-black text-lg shrink-0">
             🐉
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-['Orbitron'] font-black text-white">
-                DRAGON TIGER LIVE
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-sm sm:text-xl font-['Orbitron'] font-black text-white leading-tight">
+                DRAGON TIGER
               </h1>
-              <span className="text-[10px] bg-red-500/20 text-red-300 border border-red-500/40 px-2 py-0.5 rounded-full font-black uppercase">
-                High Speed Asian Clash
+              <span className="text-[8px] sm:text-[9px] bg-red-500/20 text-red-300 border border-red-500/40 px-1.5 py-0.2 rounded font-black uppercase">
+                Live Clash
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              Highest card wins! Dragon (2x), Tiger (2x), Tie (11x), Suited Tie (50x).
+            <p className="text-[10px] sm:text-xs text-slate-400 hidden sm:block">
+              Highest card wins: Dragon (2x), Tiger (2x), Tie (11x), Suited Tie (50x).
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 bg-[#0a0e17] px-4 py-2 rounded-2xl border border-slate-800">
+        <div className="flex items-center gap-2 bg-[#0a0e17] px-2.5 py-1.5 rounded-xl border border-slate-800">
           <div className="text-right">
-            <div className="text-[9px] uppercase font-bold text-slate-400">Wallet Balance</div>
-            <div className="font-['Orbitron'] font-black text-emerald-400 text-sm sm:text-base">
+            <div className="text-[8px] uppercase font-bold text-slate-400">Balance</div>
+            <div className="font-['Orbitron'] font-black text-emerald-400 text-xs sm:text-sm">
               ₹{user ? user.balance.toLocaleString('en-IN') : '0'}
             </div>
           </div>
           <button
             onClick={onOpenDeposit}
-            className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs transition-colors cursor-pointer"
+            className="px-2 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] transition-colors cursor-pointer"
           >
-            + Deposit
+            + Add
           </button>
         </div>
       </div>
 
       {errorMessage && (
-        <div className="p-3.5 rounded-2xl bg-red-950/70 border border-red-800 text-red-300 text-xs flex items-center gap-2">
+        <div className="p-3 rounded-xl bg-red-950/70 border border-red-800 text-red-300 text-xs flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {/* Main Arena Table */}
-      <div className="bg-[#0b101b] border border-amber-500/30 rounded-3xl p-5 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden">
-        {/* Table Felt Background Glow */}
-        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-64 h-64 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-64 h-64 bg-amber-600/10 rounded-full blur-3xl pointer-events-none"></div>
-
+      <div className="bg-[#0b101b] border border-amber-500/30 rounded-2xl p-3.5 sm:p-6 space-y-4 shadow-xl relative overflow-hidden">
         {/* Clash Cards Area */}
-        <div className="grid grid-cols-2 gap-4 sm:gap-12 max-w-2xl mx-auto py-4">
-          {/* DRAGON SIDE */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-8 max-w-xl mx-auto py-1 sm:py-3">
+          {/* DRAGON */}
           <div
-            className={`p-5 rounded-3xl border text-center transition-all duration-300 ${
+            className={`p-3 sm:p-4 rounded-2xl border text-center transition-all duration-300 ${
               winner === 'dragon'
-                ? 'bg-red-950/60 border-red-500 shadow-2xl shadow-red-500/40 scale-105'
+                ? 'bg-red-950/60 border-red-500 shadow-xl shadow-red-500/30 scale-102'
                 : 'bg-[#101625] border-red-900/40'
             }`}
           >
-            <div className="flex items-center justify-center gap-1.5 text-red-400 font-['Orbitron'] font-black text-sm uppercase tracking-widest mb-3">
+            <div className="flex items-center justify-center gap-1 text-red-400 font-['Orbitron'] font-black text-xs uppercase tracking-wider mb-2">
               <span>🐉 DRAGON</span>
             </div>
 
-            {/* 3D Playing Card */}
-            <div className="w-24 sm:w-32 h-36 sm:h-48 mx-auto rounded-2xl border-2 flex flex-col justify-between p-3 transition-all duration-500 shadow-xl bg-white border-slate-300">
+            <div className="w-20 sm:w-28 h-28 sm:h-40 mx-auto rounded-xl border-2 flex flex-col justify-between p-2 shadow-lg bg-white border-slate-300">
               {dragonCard ? (
                 <>
-                  <div className={`text-left font-bold text-lg leading-none ${dragonCard.isRed ? 'text-red-600' : 'text-slate-900'}`}>
+                  <div className={`text-left font-bold text-xs sm:text-base leading-none ${dragonCard.isRed ? 'text-red-600' : 'text-slate-900'}`}>
                     <div>{dragonCard.label}</div>
-                    <div className="text-sm">{dragonCard.suit}</div>
+                    <div className="text-[10px] sm:text-xs">{dragonCard.suit}</div>
                   </div>
-                  <div className={`text-4xl sm:text-5xl self-center font-bold ${dragonCard.isRed ? 'text-red-600' : 'text-slate-900'}`}>
+                  <div className={`text-2xl sm:text-4xl self-center font-bold ${dragonCard.isRed ? 'text-red-600' : 'text-slate-900'}`}>
                     {dragonCard.suit}
                   </div>
-                  <div className={`text-right font-bold text-lg leading-none rotate-180 ${dragonCard.isRed ? 'text-red-600' : 'text-slate-900'}`}>
+                  <div className={`text-right font-bold text-xs sm:text-base leading-none rotate-180 ${dragonCard.isRed ? 'text-red-600' : 'text-slate-900'}`}>
                     <div>{dragonCard.label}</div>
-                    <div className="text-sm">{dragonCard.suit}</div>
+                    <div className="text-[10px] sm:text-xs">{dragonCard.suit}</div>
                   </div>
                 </>
               ) : (
-                <div className="h-full rounded-xl bg-gradient-to-br from-red-800 to-red-950 border border-red-700/60 flex items-center justify-center text-white/50 font-['Orbitron'] font-black text-xs">
+                <div className="h-full rounded-lg bg-gradient-to-br from-red-800 to-red-950 flex items-center justify-center text-white/50 font-['Orbitron'] font-black text-[10px]">
                   DRAGON
                 </div>
               )}
             </div>
           </div>
 
-          {/* TIGER SIDE */}
+          {/* TIGER */}
           <div
-            className={`p-5 rounded-3xl border text-center transition-all duration-300 ${
+            className={`p-3 sm:p-4 rounded-2xl border text-center transition-all duration-300 ${
               winner === 'tiger'
-                ? 'bg-amber-950/60 border-amber-500 shadow-2xl shadow-amber-500/40 scale-105'
+                ? 'bg-amber-950/60 border-amber-500 shadow-xl shadow-amber-500/30 scale-102'
                 : 'bg-[#101625] border-amber-900/40'
             }`}
           >
-            <div className="flex items-center justify-center gap-1.5 text-amber-400 font-['Orbitron'] font-black text-sm uppercase tracking-widest mb-3">
+            <div className="flex items-center justify-center gap-1 text-amber-400 font-['Orbitron'] font-black text-xs uppercase tracking-wider mb-2">
               <span>🐅 TIGER</span>
             </div>
 
-            {/* 3D Playing Card */}
-            <div className="w-24 sm:w-32 h-36 sm:h-48 mx-auto rounded-2xl border-2 flex flex-col justify-between p-3 transition-all duration-500 shadow-xl bg-white border-slate-300">
+            <div className="w-20 sm:w-28 h-28 sm:h-40 mx-auto rounded-xl border-2 flex flex-col justify-between p-2 shadow-lg bg-white border-slate-300">
               {tigerCard ? (
                 <>
-                  <div className={`text-left font-bold text-lg leading-none ${tigerCard.isRed ? 'text-red-600' : 'text-slate-900'}`}>
+                  <div className={`text-left font-bold text-xs sm:text-base leading-none ${tigerCard.isRed ? 'text-red-600' : 'text-slate-900'}`}>
                     <div>{tigerCard.label}</div>
-                    <div className="text-sm">{tigerCard.suit}</div>
+                    <div className="text-[10px] sm:text-xs">{tigerCard.suit}</div>
                   </div>
-                  <div className={`text-4xl sm:text-5xl self-center font-bold ${tigerCard.isRed ? 'text-red-600' : 'text-slate-900'}`}>
+                  <div className={`text-2xl sm:text-4xl self-center font-bold ${tigerCard.isRed ? 'text-red-600' : 'text-slate-900'}`}>
                     {tigerCard.suit}
                   </div>
-                  <div className={`text-right font-bold text-lg leading-none rotate-180 ${tigerCard.isRed ? 'text-red-600' : 'text-slate-900'}`}>
+                  <div className={`text-right font-bold text-xs sm:text-base leading-none rotate-180 ${tigerCard.isRed ? 'text-red-600' : 'text-slate-900'}`}>
                     <div>{tigerCard.label}</div>
-                    <div className="text-sm">{tigerCard.suit}</div>
+                    <div className="text-[10px] sm:text-xs">{tigerCard.suit}</div>
                   </div>
                 </>
               ) : (
-                <div className="h-full rounded-xl bg-gradient-to-br from-amber-800 to-amber-950 border border-amber-700/60 flex items-center justify-center text-white/50 font-['Orbitron'] font-black text-xs">
+                <div className="h-full rounded-lg bg-gradient-to-br from-amber-800 to-amber-950 flex items-center justify-center text-white/50 font-['Orbitron'] font-black text-[10px]">
                   TIGER
                 </div>
               )}
@@ -364,113 +350,102 @@ export const DragonTigerGame: React.FC<DragonTigerGameProps> = ({
           </div>
         </div>
 
-        {/* Win Notification Banner */}
+        {/* Win Banner */}
         {phase === 'result' && (
-          <div className="p-4 rounded-2xl bg-[#090d16] border border-amber-500/60 text-center space-y-1 animate-milestone max-w-md mx-auto shadow-2xl">
-            <div className="text-xs uppercase font-bold text-amber-400">
+          <div className="p-3 rounded-xl bg-[#090d16] border border-amber-500/60 text-center animate-milestone max-w-sm mx-auto">
+            <div className="text-[10px] uppercase font-bold text-amber-400">
               {winner === 'dragon' ? '🐉 DRAGON WINS!' : winner === 'tiger' ? '🐅 TIGER WINS!' : '🤝 TIE GAME!'}
             </div>
-            {roundWinAmount > 0 ? (
-              <div className="text-2xl font-['Orbitron'] font-black text-emerald-400">
+            {roundWinAmount > 0 && (
+              <div className="text-xl font-['Orbitron'] font-black text-emerald-400">
                 +₹{roundWinAmount.toLocaleString('en-IN')} WON!
               </div>
-            ) : (
-              <div className="text-sm font-bold text-slate-400">Round Completed</div>
             )}
           </div>
         )}
 
-        {/* Betting Felt Board (Dragon, Tie, Suited Tie, Tiger) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl mx-auto">
-          {/* Dragon Bet */}
+        {/* Betting Felt Board (2x2 on Mobile, 4-Col on Desktop) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 max-w-3xl mx-auto">
           <button
             type="button"
             disabled={phase !== 'betting'}
             onClick={() => handleAddBet('dragon')}
-            className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
+            className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
               bets.dragon > 0
-                ? 'bg-red-950/80 border-red-500 shadow-lg shadow-red-500/25'
-                : 'bg-[#101625] hover:bg-red-950/40 border-red-900/40 hover:border-red-500/60'
+                ? 'bg-red-950/80 border-red-500 shadow-md'
+                : 'bg-[#101625] hover:bg-red-950/40 border-red-900/40'
             }`}
           >
-            <div className="text-xs uppercase font-bold text-red-400">DRAGON</div>
-            <div className="text-lg sm:text-xl font-['Orbitron'] font-black text-white mt-1">2.0×</div>
-            <div className="text-[10px] text-slate-400">Pays 1:1</div>
+            <div className="text-[10px] uppercase font-bold text-red-400">DRAGON</div>
+            <div className="text-base font-['Orbitron'] font-black text-white mt-0.5">2.0×</div>
             {bets.dragon > 0 && (
-              <div className="mt-2 py-1 px-2.5 rounded-full bg-red-600 text-white font-mono font-bold text-xs inline-block shadow-md">
+              <div className="mt-1 py-0.5 px-2 rounded-full bg-red-600 text-white font-mono font-bold text-[10px] inline-block">
                 ₹{bets.dragon}
               </div>
             )}
           </button>
 
-          {/* Tie Bet */}
           <button
             type="button"
             disabled={phase !== 'betting'}
             onClick={() => handleAddBet('tie')}
-            className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
+            className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
               bets.tie > 0
-                ? 'bg-emerald-950/80 border-emerald-500 shadow-lg shadow-emerald-500/25'
-                : 'bg-[#101625] hover:bg-emerald-950/40 border-emerald-900/40 hover:border-emerald-500/60'
+                ? 'bg-emerald-950/80 border-emerald-500 shadow-md'
+                : 'bg-[#101625] hover:bg-emerald-950/40 border-emerald-900/40'
             }`}
           >
-            <div className="text-xs uppercase font-bold text-emerald-400">TIE</div>
-            <div className="text-lg sm:text-xl font-['Orbitron'] font-black text-white mt-1">11.0×</div>
-            <div className="text-[10px] text-slate-400">Pays 10:1</div>
+            <div className="text-[10px] uppercase font-bold text-emerald-400">TIE</div>
+            <div className="text-base font-['Orbitron'] font-black text-white mt-0.5">11.0×</div>
             {bets.tie > 0 && (
-              <div className="mt-2 py-1 px-2.5 rounded-full bg-emerald-600 text-white font-mono font-bold text-xs inline-block shadow-md">
+              <div className="mt-1 py-0.5 px-2 rounded-full bg-emerald-600 text-white font-mono font-bold text-[10px] inline-block">
                 ₹{bets.tie}
               </div>
             )}
           </button>
 
-          {/* Suited Tie Bet */}
           <button
             type="button"
             disabled={phase !== 'betting'}
             onClick={() => handleAddBet('suited-tie')}
-            className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
+            className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
               bets['suited-tie'] > 0
-                ? 'bg-purple-950/80 border-purple-500 shadow-lg shadow-purple-500/25'
-                : 'bg-[#101625] hover:bg-purple-950/40 border-purple-900/40 hover:border-purple-500/60'
+                ? 'bg-purple-950/80 border-purple-500 shadow-md'
+                : 'bg-[#101625] hover:bg-purple-950/40 border-purple-900/40'
             }`}
           >
-            <div className="text-xs uppercase font-bold text-purple-400">SUITED TIE</div>
-            <div className="text-lg sm:text-xl font-['Orbitron'] font-black text-white mt-1">50.0×</div>
-            <div className="text-[10px] text-slate-400">Jackpot 49:1</div>
+            <div className="text-[10px] uppercase font-bold text-purple-400">SUITED TIE</div>
+            <div className="text-base font-['Orbitron'] font-black text-white mt-0.5">50.0×</div>
             {bets['suited-tie'] > 0 && (
-              <div className="mt-2 py-1 px-2.5 rounded-full bg-purple-600 text-white font-mono font-bold text-xs inline-block shadow-md">
+              <div className="mt-1 py-0.5 px-2 rounded-full bg-purple-600 text-white font-mono font-bold text-[10px] inline-block">
                 ₹{bets['suited-tie']}
               </div>
             )}
           </button>
 
-          {/* Tiger Bet */}
           <button
             type="button"
             disabled={phase !== 'betting'}
             onClick={() => handleAddBet('tiger')}
-            className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
+            className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
               bets.tiger > 0
-                ? 'bg-amber-950/80 border-amber-500 shadow-lg shadow-amber-500/25'
-                : 'bg-[#101625] hover:bg-amber-950/40 border-amber-900/40 hover:border-amber-500/60'
+                ? 'bg-amber-950/80 border-amber-500 shadow-md'
+                : 'bg-[#101625] hover:bg-amber-950/40 border-amber-900/40'
             }`}
           >
-            <div className="text-xs uppercase font-bold text-amber-400">TIGER</div>
-            <div className="text-lg sm:text-xl font-['Orbitron'] font-black text-white mt-1">2.0×</div>
-            <div className="text-[10px] text-slate-400">Pays 1:1</div>
+            <div className="text-[10px] uppercase font-bold text-amber-400">TIGER</div>
+            <div className="text-base font-['Orbitron'] font-black text-white mt-0.5">2.0×</div>
             {bets.tiger > 0 && (
-              <div className="mt-2 py-1 px-2.5 rounded-full bg-amber-600 text-black font-mono font-black text-xs inline-block shadow-md">
+              <div className="mt-1 py-0.5 px-2 rounded-full bg-amber-600 text-black font-mono font-black text-[10px] inline-block">
                 ₹{bets.tiger}
               </div>
             )}
           </button>
         </div>
 
-        {/* Chip Controls & Action Bar */}
-        <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Chip Selector */}
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto w-full sm:w-auto pb-1">
+        {/* Chip Controls & Action Footer */}
+        <div className="pt-2 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-0.5">
             {CHIPS.map((chip) => (
               <button
                 key={chip}
@@ -479,10 +454,10 @@ export const DragonTigerGame: React.FC<DragonTigerGameProps> = ({
                   sounds.playChipClink();
                   setSelectedChip(chip);
                 }}
-                className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 flex items-center justify-center font-mono font-black text-xs cursor-pointer shadow-lg transition-transform active:scale-95 shrink-0 ${
+                className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full border flex items-center justify-center font-mono font-black text-[11px] cursor-pointer shrink-0 ${
                   selectedChip === chip
-                    ? 'border-white scale-110 shadow-amber-500/40 bg-gradient-to-br from-amber-400 to-amber-600 text-black ring-2 ring-amber-400'
-                    : 'border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500'
+                    ? 'border-white shadow-amber-500/40 bg-gradient-to-br from-amber-400 to-amber-600 text-black ring-1 ring-amber-400 scale-105'
+                    : 'border-slate-700 bg-slate-800 text-slate-300'
                 }`}
               >
                 ₹{chip >= 1000 ? `${chip / 1000}k` : chip}
@@ -490,13 +465,12 @@ export const DragonTigerGame: React.FC<DragonTigerGameProps> = ({
             ))}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               type="button"
               disabled={totalBet === 0 || phase !== 'betting'}
               onClick={handleClearBets}
-              className="px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors cursor-pointer disabled:opacity-40"
+              className="px-3 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs cursor-pointer disabled:opacity-40"
             >
               Clear
             </button>
@@ -505,31 +479,31 @@ export const DragonTigerGame: React.FC<DragonTigerGameProps> = ({
               type="button"
               disabled={totalBet === 0 || phase !== 'betting' || isProcessing}
               onClick={handleDealRound}
-              className={`flex-1 sm:flex-none px-8 py-3.5 rounded-2xl font-['Orbitron'] font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-['Orbitron'] font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
                 totalBet > 0 && phase === 'betting'
-                  ? 'bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-black shadow-lg shadow-amber-500/25 active:scale-95 animate-shimmer'
+                  ? 'bg-gradient-to-r from-red-600 to-amber-500 text-black shadow-md active:scale-95'
                   : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
               }`}
             >
               {isProcessing
-                ? 'Dealing Cards...'
+                ? 'Dealing...'
                 : totalBet > 0
-                ? `Deal Now (₹${totalBet})`
+                ? `Deal (₹${totalBet})`
                 : 'Select Chips to Bet'}
             </button>
           </div>
         </div>
 
-        {/* Road History Streak Board (Bead Road) */}
-        <div className="p-3 bg-[#080c14] rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
-          <span className="font-['Orbitron'] font-bold text-[10px] text-slate-400 uppercase tracking-wider">
-            Bead Road:
+        {/* Bead Road */}
+        <div className="p-2 bg-[#080c14] rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+          <span className="font-['Orbitron'] font-bold text-[9px] text-slate-400 uppercase tracking-wider">
+            Road:
           </span>
-          <div className="flex items-center gap-1.5 overflow-x-auto">
+          <div className="flex items-center gap-1 overflow-x-auto">
             {roadHistory.map((res, i) => (
               <span
                 key={i}
-                className={`w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] shadow-sm ${
+                className={`w-5 h-5 rounded-full flex items-center justify-center font-black text-[9px] ${
                   res === 'D'
                     ? 'bg-red-600 text-white'
                     : res === 'T'

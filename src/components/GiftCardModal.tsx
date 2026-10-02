@@ -132,7 +132,7 @@ export const GiftCardModal: React.FC<GiftCardModalProps> = ({
             <div className="flex items-center justify-between">
               <div className="text-[10px] font-['Orbitron'] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-amber-400" />
-                <span>4TimeBet VIP Voucher</span>
+                <span>4X STAKES VIP Voucher</span>
               </div>
               <div className="w-8 h-6 rounded bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
                 <div className="w-4 h-3 border border-amber-400/50 rounded-sm"></div>
