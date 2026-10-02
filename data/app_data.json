@@ -1,0 +1,12 @@
+{
+  "users": {
+    "user_demo_1": {
+      "id": "user_demo_1",
+      "name": "LuckyStriker",
+      "balance": 0,
+      "avatar": "⚡",
+      "createdAt": 1790873630730
+    }
+  },
+  "deposits": []
+}

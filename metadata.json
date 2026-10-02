@@ -1,0 +1,8 @@
+{
+  "name": "4TimeBet",
+  "description": "Interactive iGaming portal featuring Sky High Crash, Sky High Black VIP, 7 Up 7 Down, and unified UPI wallet system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
